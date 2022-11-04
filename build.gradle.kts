@@ -25,6 +25,16 @@ plugins {
 apply(plugin = "kotlin")
 
 dependencies {
+    val kotlinVersion: String by project
+
+    implementation("ch.qos.logback:logback-classic:1.2.11")
+    implementation("ch.qos.logback.contrib:logback-json-classic:0.1.5")
+    implementation("ch.qos.logback.contrib:logback-jackson:0.1.5")
+    implementation("io.github.microutils:kotlin-logging:2.1.23")
+    implementation("org.yaml:snakeyaml:1.30")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"  )
+    testImplementation("io.kotlintest:kotlintest-runner-junit5:3.4.2")
+    testImplementation("io.mockk:mockk:1.12.7")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
