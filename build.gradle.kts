@@ -26,6 +26,7 @@ apply(plugin = "kotlin")
 
 dependencies {
     val kotlinVersion: String by project
+    val jacksonVersion: String by project
 
     implementation("ch.qos.logback:logback-classic:1.2.11")
     implementation("ch.qos.logback.contrib:logback-json-classic:0.1.5")
@@ -33,6 +34,12 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging:2.1.23")
     implementation("org.yaml:snakeyaml:1.30")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"  )
+    implementation("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
+    implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
     testImplementation("io.kotlintest:kotlintest-runner-junit5:3.4.2")
     testImplementation("io.mockk:mockk:1.12.7")
 }
