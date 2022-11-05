@@ -21,3 +21,10 @@ aStringList:
   - c
 
 overrideInSecret: NotOverridden
+
+db:
+  type: Postgres
+  driver: org.postgresql.Driver
+  username: ktapi
+  password: local
+  jdbcUrl: jdbc:postgresql://localhost:6643/ktapi

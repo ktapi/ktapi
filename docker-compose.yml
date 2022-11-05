@@ -1,0 +1,12 @@
+version: '3.1'
+
+services:
+  ktapi-postgress:
+    image: "postgres"
+    restart: always
+    ports:
+      - "6643:5432"
+    environment:
+      POSTGRES_PASSWORD: local
+      POSTGRES_USER: ktapi
+      POSTGRES_DB: ktapi
