@@ -21,7 +21,7 @@ import java.io.File
  * class like this:
  *
  * ```
- * object WebServer : Javalin(setup = {
+ * object WebServer : Javalin({
  *     routes {
  *        get("/myPath", myHandler)
  *     }
@@ -31,9 +31,9 @@ import java.io.File
  * ```
  * Or you can have it auto find classes that implement the Router interface and call the route function like this:
  * ```
- * object WebServer : Javalin(setup = {
+ * object WebServer : Javalin({
  *     routes {
- *        WebServer.autoRoute()
+ *        autoRoute(WebServer)
  *     }
  * })
  * ```
@@ -49,12 +49,17 @@ import java.io.File
  * - web.accessManager an instance of `io.javalin.core.security.AccessManager` to be used for the Javalin instance
  * - web.serverPort the port to use for the web server, the default is `8080`
  */
-open class Javalin(private val accessManager: AccessManager? = null, setup: io.javalin.Javalin.() -> Any) {
+open class Javalin(setup: io.javalin.Javalin.() -> Any) {
     private val useOpenApi = config("web.openApi", true)
     private val allowOpenApiInProd = config("web.allowOpenApiInProd", false)
     private val traceExtraBuilder = config<WebTraceExtraBuilder>("web.traceExtraBuilder", EmptyWebTraceExtraBuilder)
     private val corsOrigins = configOrNull<String>("web.corsOrigins")
     private val port = config("web.serverPort", 8080)
+    private var accessManager: AccessManager? = null
+
+    constructor(accessManager: AccessManager, setup: io.javalin.Javalin.() -> Any) : this(setup) {
+        this.accessManager = accessManager
+    }
 
     val app: io.javalin.Javalin = io.javalin.Javalin.create {
         when (corsOrigins) {
@@ -72,7 +77,7 @@ open class Javalin(private val accessManager: AccessManager? = null, setup: io.j
                         ctx.status(HttpCode.NOT_FOUND)
                     }
                 } else {
-                    accessManager.manage(handler, ctx, routeRoles)
+                    accessManager?.manage(handler, ctx, routeRoles)
                 }
             }
         }
@@ -126,21 +131,19 @@ open class Javalin(private val accessManager: AccessManager? = null, setup: io.j
     }
 
     fun test(testCase: TestCase) = JavalinTest.test(app, testCase)
+}
 
-    protected fun autoRoute() {
-        findRouters().forEach { it.route() }
-    }
+fun autoRoute(instance: Javalin) {
+    val resource = "/${instance::class.qualifiedName?.replace(".", "/")}.class"
+    val directory = File(instance::class.java.getResource(resource).file).parentFile
+    val base = directory.canonicalPath.substringBefore(resource.substringBeforeLast("/")) + "/"
 
-    private fun findRouters(): Sequence<Router> {
-        val resource = "/${this::class.qualifiedName?.replace(".", "/")}.class"
-        val directory = File(this::class.java.getResource(resource).file).parentFile
-        val base = directory.canonicalPath.substringBefore(resource.substringBeforeLast("/")) + "/"
+    val routers = directory.walk()
+        .filter { it.isFile && !it.name.contains("$") && it.name.endsWith(".class") }
+        .map { it.canonicalPath.removePrefix(base).removeSuffix(".class").replace('/', '.') }
+        .map { Class.forName(it).kotlin.objectInstance }
+        .filter { it is Router }
+        .map { it as Router }
 
-        return directory.walk()
-            .filter { it.isFile && !it.name.contains("$") && it.name.endsWith(".class") }
-            .map { it.canonicalPath.removePrefix(base).removeSuffix(".class").replace('/', '.') }
-            .map { Class.forName(it).kotlin.objectInstance }
-            .filter { it is Router }
-            .map { it as Router }
-    }
+    routers.forEach { it.route() }
 }
