@@ -1,4 +1,4 @@
-# ktapi
+# KtAPI
 
 A library to make it simple to get a Kotlin based API up and running.
 
