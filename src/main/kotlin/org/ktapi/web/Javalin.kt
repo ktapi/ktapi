@@ -49,12 +49,11 @@ import java.io.File
  * - web.accessManager an instance of `io.javalin.core.security.AccessManager` to be used for the Javalin instance
  * - web.serverPort the port to use for the web server, the default is `8080`
  */
-open class Javalin(setup: io.javalin.Javalin.() -> Any) {
+open class Javalin(private val accessManager: AccessManager? = null, setup: io.javalin.Javalin.() -> Any) {
     private val useOpenApi = config("web.openApi", true)
     private val allowOpenApiInProd = config("web.allowOpenApiInProd", false)
     private val traceExtraBuilder = config<WebTraceExtraBuilder>("web.traceExtraBuilder", EmptyWebTraceExtraBuilder)
     private val corsOrigins = configOrNull<String>("web.corsOrigins")
-    private val accessManager = configOrNull<AccessManager>("web.accessManager")
     private val port = config("web.serverPort", 8080)
 
     val app: io.javalin.Javalin = io.javalin.Javalin.create {
@@ -64,9 +63,8 @@ open class Javalin(setup: io.javalin.Javalin.() -> Any) {
             else -> it.enableCorsForOrigin(*corsOrigins.split(",").toTypedArray())
         }
 
-        when (accessManager) {
-            null -> Unit
-            else -> it.accessManager { handler, ctx, routeRoles ->
+        if (accessManager != null) {
+            it.accessManager { handler, ctx, routeRoles ->
                 if (useOpenApi && (ctx.path() == "/" || ctx.path() == "/openapi")) {
                     if (Environment.isNotProd || allowOpenApiInProd) {
                         handler.handle(ctx)

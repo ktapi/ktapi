@@ -30,6 +30,8 @@ dependencies {
     val ktormVersion: String by project
     val javalinVersion: String by project
 
+    compileOnly(gradleApi())
+
     implementation("ch.qos.logback:logback-classic:1.2.11")
     implementation("ch.qos.logback.contrib:logback-json-classic:0.1.5")
     implementation("ch.qos.logback.contrib:logback-jackson:0.1.5")
@@ -51,9 +53,12 @@ dependencies {
     implementation("io.javalin:javalin:$javalinVersion")
     implementation("io.javalin:javalin-openapi:$javalinVersion")
     implementation("io.javalin:javalin-testtools:$javalinVersion")
+    implementation("org.springframework.security:spring-security-crypto:5.7.3")
+
     compileOnly("io.sentry:sentry-servlet:6.4.1")
     compileOnly("io.kotlintest:kotlintest-runner-junit5:3.4.2")
     compileOnly("io.mockk:mockk:1.12.7")
+
     testImplementation("io.kotlintest:kotlintest-runner-junit5:3.4.2")
     testImplementation("io.mockk:mockk:1.12.7")
 }
@@ -73,7 +78,7 @@ publishing {
         create<MavenPublication>("maven") {
             groupId = "org.ktapi"
             artifactId = "ktapi"
-            version = "0.0.1"
+            version = "0.1.0"
 
             from(components["java"])
 
