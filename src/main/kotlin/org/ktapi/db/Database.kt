@@ -222,11 +222,11 @@ object Database : Init() {
                     val resultTypes = args.filterIsInstance<Result>()
 
                     while (rs.next()) {
+                        val rowData = mutableMapOf<String, Any?>()
                         resultTypes.mapIndexed { i, result ->
-                            Pair(result.name, columnValue(rs, result, i + 1))
-                        }.apply {
-                            results.add(Row(toMap()))
+                            rowData[result.name] = columnValue(rs, result, i + 1)
                         }
+                        results.add(Row(rowData))
                     }
 
                     results
