@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import org.ktorm.jackson.KtormModule
 import java.io.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
@@ -84,6 +85,7 @@ object Json {
         .addModule(Jdk8Module())
         .addModule(JavaTimeModule())
         .addModule(KotlinModule.Builder().build())
+        .addModule(KtormModule())
         .propertyNamingStrategy(namingStrategy)
         .build()
 
