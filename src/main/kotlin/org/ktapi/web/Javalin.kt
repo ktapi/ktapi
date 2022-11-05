@@ -1,5 +1,6 @@
 package org.ktapi.web
 
+import io.javalin.Javalin
 import io.javalin.core.security.AccessManager
 import io.javalin.http.HttpCode
 import io.javalin.plugin.json.JavalinJackson
@@ -29,16 +30,13 @@ import java.io.File
  *
  * WebServer.start()
  * ```
- * Or you can have it auto find classes that implement the Router interface and call the route function like this:
+ * This class will automatically find instances of the Router interface in the same package at the WebServer class or
+ * any package below it. So you may not need any initialization and can configure it like this:
  * ```
- * object WebServer : Javalin({
- *     routes {
- *        autoRoute(WebServer)
- *     }
- * })
+ * object WebServer : Javalin()
  * ```
  *
- * The created Javalin instance can be accessed at `WebServer.app` or `org.ktapi.web.Javalin.app`.
+ * The created Javalin instance can be accessed at `WebServer.app`
  *
  * These following configurations are used by this object:
  * - web.openApi if this is `true` the root of the api will serve swagger and /openapi will server the OpenAPI json
@@ -49,19 +47,28 @@ import java.io.File
  * - web.accessManager an instance of `io.javalin.core.security.AccessManager` to be used for the Javalin instance
  * - web.serverPort the port to use for the web server, the default is `8080`
  */
-open class Javalin(setup: io.javalin.Javalin.() -> Any) {
+abstract class Javalin(private val setup: Javalin.() -> Any = {}) {
     private val useOpenApi = config("web.openApi", true)
     private val allowOpenApiInProd = config("web.allowOpenApiInProd", false)
     private val traceExtraBuilder = config<WebTraceExtraBuilder>("web.traceExtraBuilder", EmptyWebTraceExtraBuilder)
     private val corsOrigins = configOrNull<String>("web.corsOrigins")
     private val port = config("web.serverPort", 8080)
     private var accessManager: AccessManager? = null
+    private var currentApp: Javalin? = null
+    private var routers: Sequence<Router>? = null
 
-    constructor(accessManager: AccessManager, setup: io.javalin.Javalin.() -> Any) : this(setup) {
+    constructor(accessManager: AccessManager, setup: Javalin.() -> Any = {}) : this(setup) {
         this.accessManager = accessManager
     }
 
-    val app: io.javalin.Javalin = io.javalin.Javalin.create {
+    val app: Javalin
+        get() {
+            if (currentApp == null) currentApp = create()
+            return currentApp!!
+        }
+
+
+    private fun create(): Javalin = Javalin.create {
         when (corsOrigins) {
             null -> Unit
             "*" -> it.enableCorsForAllOrigins()
@@ -120,30 +127,33 @@ open class Javalin(setup: io.javalin.Javalin.() -> Any) {
                 traceExtraBuilder.build(context)
             )
         }
-    }
 
-    init {
-        setup(this.app)
+        autoRoute(this)
+        setup(this)
     }
 
     fun start() {
         app.start(port)
     }
 
-    fun test(testCase: TestCase) = JavalinTest.test(app, testCase)
-}
+    private fun autoRoute(app: Javalin) {
+        if (routers == null) {
+            val resource = "/${this::class.qualifiedName?.replace(".", "/")}.class"
+            val directory = File(this::class.java.getResource(resource).file).parentFile
+            val base = directory.canonicalPath.substringBefore(resource.substringBeforeLast("/")) + "/"
 
-fun autoRoute(instance: Javalin) {
-    val resource = "/${instance::class.qualifiedName?.replace(".", "/")}.class"
-    val directory = File(instance::class.java.getResource(resource).file).parentFile
-    val base = directory.canonicalPath.substringBefore(resource.substringBeforeLast("/")) + "/"
+            routers = directory.walk()
+                .filter { it.isFile && !it.name.contains("$") && it.name.endsWith(".class") }
+                .map { it.canonicalPath.removePrefix(base).removeSuffix(".class").replace('/', '.') }
+                .map { Class.forName(it).kotlin.objectInstance }
+                .filter { it is Router }
+                .map { it as Router }
+        }
 
-    val routers = directory.walk()
-        .filter { it.isFile && !it.name.contains("$") && it.name.endsWith(".class") }
-        .map { it.canonicalPath.removePrefix(base).removeSuffix(".class").replace('/', '.') }
-        .map { Class.forName(it).kotlin.objectInstance }
-        .filter { it is Router }
-        .map { it as Router }
+        app.routes {
+            routers!!.forEach { it.route() }
+        }
+    }
 
-    routers.forEach { it.route() }
+    fun test(testCase: TestCase) = JavalinTest.test(create(), testCase)
 }
