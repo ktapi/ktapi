@@ -143,7 +143,7 @@ abstract class Javalin(private val setup: Javalin.() -> Any = {}) {
             val base = directory.canonicalPath.substringBefore(resource.substringBeforeLast("/")) + "/"
 
             routers = directory.walk()
-                .filter { it.isFile && !it.name.contains("$") && it.name.endsWith(".class") }
+                .filter { it.isFile && !it.name.contains("$") && it.name.endsWith(".class") && !it.name.endsWith("Kt.class") }
                 .map { it.canonicalPath.removePrefix(base).removeSuffix(".class").replace('/', '.') }
                 .map { Class.forName(it).kotlin.objectInstance }
                 .filter { it is Router }
