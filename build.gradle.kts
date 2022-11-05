@@ -58,9 +58,13 @@ dependencies {
     compileOnly("io.sentry:sentry-servlet:6.4.1")
     compileOnly("io.kotlintest:kotlintest-runner-junit5:3.4.2")
     compileOnly("io.mockk:mockk:1.12.7")
+    compileOnly("redis.clients:jedis:4.2.3")
+    compileOnly("com.rabbitmq:amqp-client:5.14.2")
 
     testImplementation("io.kotlintest:kotlintest-runner-junit5:3.4.2")
     testImplementation("io.mockk:mockk:1.12.7")
+    testImplementation("redis.clients:jedis:4.2.3")
+    testImplementation("com.rabbitmq:amqp-client:5.14.2")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

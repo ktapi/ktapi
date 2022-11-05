@@ -1,12 +1,16 @@
 package org.ktapi
 
+import java.net.URLEncoder
 import java.time.*
 import java.time.temporal.ChronoField
 import kotlin.math.round
+import kotlin.reflect.KFunction
 
 internal object Util {
     val classLoader: ClassLoader = Util.javaClass.classLoader
 }
+
+fun KFunction<*>.toQualifiedName() = toString().substringAfter(" ").substringBefore("(")
 
 /**
  * This is a convenience class that adds an init function that can be called to
@@ -35,6 +39,11 @@ fun String.resourceAsString() = Util.classLoader.getResource(this)?.readText()
  * @return true if a classpath resource exists with the path in the string
  */
 fun String.resourceExists() = Util.classLoader.getResource(this) != null
+
+/**
+ * @return the URL encoded string
+ */
+fun String.urlEncode(): String = URLEncoder.encode(this, "UTF-8")
 
 // Date Functions
 fun now() = LocalDateTime.now()
@@ -65,3 +74,48 @@ fun LocalDateTime.toStartOfMinute(): LocalDateTime = LocalDateTime.of(year, mont
 fun LocalDateTime.toStartOfHour(): LocalDateTime = LocalDateTime.of(year, month, dayOfMonth, hour, 0)
 fun LocalDateTime.toStartOfDay(): LocalDateTime = LocalDateTime.of(year, month, dayOfMonth, 0, 0)
 fun LocalDateTime.toStartOfMonth(): LocalDateTime = LocalDateTime.of(year, month, 1, 0, 0)
+
+
+// Error reporting
+
+/**
+ * Catches any Throwable that comes out of the block and sends it to the ErrorReporter, then rethrows the Throwable
+ *
+ * @param block the block of code to execute
+ */
+fun <T> reportAndThrow(block: () -> T?): T? = reportAndThrow({ null }, block)
+
+/**
+ * Catches any Throwable that comes out of the block and sends it to the ErrorReporter, then rethrows the Throwable
+ *
+ * @param addedInfo callback that can add info to send to the ErrorReporter
+ * @param block the block of code to execute
+ */
+fun <T> reportAndThrow(addedInfo: (t: Throwable) -> Map<String, Any>?, block: () -> T?) =
+    try {
+        block()
+    } catch (t: Throwable) {
+        Application.ErrorReporter.report(t, addedInfo(t))
+        throw t
+    }
+
+/**
+ * Catches any Throwable that comes out of the block and sends it to the ErrorReporter, then returns null
+ *
+ * @param block the block of code to execute
+ */
+fun <T> reportAndSwallow(block: () -> T?): T? = reportAndSwallow({ null }, block)
+
+/**
+ * Catches any Throwable that comes out of the block and sends it to the ErrorReporter, then returns null
+ *
+ * @param addedInfo callback that can add info to send to the ErrorReporter
+ * @param block the block of code to execute
+ */
+fun <T> reportAndSwallow(addedInfo: (t: Throwable) -> Map<String, Any>?, block: () -> T?) =
+    try {
+        block()
+    } catch (t: Throwable) {
+        Application.ErrorReporter.report(t, addedInfo(t))
+        null
+    }

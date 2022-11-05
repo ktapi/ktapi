@@ -28,3 +28,15 @@ db:
   username: ktapi
   password: local
   jdbcUrl: jdbc:postgresql://localhost:6643/ktapi
+
+cache:
+  redis:
+    host: localhost
+    port: 6640
+
+queue:
+  rabbitmq:
+    username: ktapi
+    password: local
+    port: 6641
+    host: localhost
