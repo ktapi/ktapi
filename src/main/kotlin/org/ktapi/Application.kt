@@ -1,6 +1,7 @@
 package org.ktapi
 
 import mu.KotlinLogging
+import org.ktapi.files.FileStorage
 import org.ktapi.trace.ConsoleLogger
 import org.ktapi.trace.TraceLogger
 
@@ -17,11 +18,13 @@ import org.ktapi.trace.TraceLogger
  * These configuration properties can be set:
  * - application.name the name of the application
  * - application.traceLogger the TraceLogger to use for logging application traces, the default is ConsoleLogger
+ * - application.fileStorage the FileStorage implementation to use for this application, by default this will not be initialized
  */
 object Application {
     private val initStart = System.currentTimeMillis()
     val name: String
     val TraceLogger: TraceLogger
+    lateinit var FileStorage: FileStorage
 
     init {
         Environment.init()
@@ -29,6 +32,9 @@ object Application {
         name = config("application.name")
 
         TraceLogger = config("application.traceLogger", ConsoleLogger)
+
+        val fileStorage: FileStorage? = configOrNull("application.fileStorage")
+        if (fileStorage != null) FileStorage = fileStorage
     }
 
     operator fun invoke(init: () -> Any? = {}) {
