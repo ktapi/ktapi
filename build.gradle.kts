@@ -28,6 +28,7 @@ dependencies {
     val kotlinVersion: String by project
     val jacksonVersion: String by project
     val ktormVersion: String by project
+    val javalinVersion: String by project
 
     implementation("ch.qos.logback:logback-classic:1.2.11")
     implementation("ch.qos.logback.contrib:logback-json-classic:0.1.5")
@@ -47,6 +48,10 @@ dependencies {
     implementation("org.ktorm:ktorm-support-mysql:$ktormVersion")
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("org.flywaydb:flyway-core:9.2.0")
+    implementation("io.javalin:javalin:$javalinVersion")
+    implementation("io.javalin:javalin-openapi:$javalinVersion")
+    implementation("io.javalin:javalin-testtools:$javalinVersion")
+    compileOnly("io.sentry:sentry-servlet:6.4.1")
     compileOnly("io.kotlintest:kotlintest-runner-junit5:3.4.2")
     compileOnly("io.mockk:mockk:1.12.7")
     testImplementation("io.kotlintest:kotlintest-runner-junit5:3.4.2")

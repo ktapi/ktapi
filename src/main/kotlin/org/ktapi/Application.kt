@@ -1,6 +1,8 @@
 package org.ktapi
 
 import mu.KotlinLogging
+import org.ktapi.error.ConsoleErrorReporter
+import org.ktapi.error.ErrorReporter
 import org.ktapi.files.FileStorage
 import org.ktapi.trace.ConsoleLogger
 import org.ktapi.trace.TraceLogger
@@ -19,11 +21,13 @@ import org.ktapi.trace.TraceLogger
  * - application.name the name of the application
  * - application.traceLogger the TraceLogger to use for logging application traces, the default is ConsoleLogger
  * - application.fileStorage the FileStorage implementation to use for this application, by default this will not be initialized
+ * - application.errorReporter the ErrorReporter to use for reporting errors, the default is ConsoleErrorReporter
  */
 object Application {
     private val initStart = System.currentTimeMillis()
     val name: String
     val TraceLogger: TraceLogger
+    val ErrorReporter: ErrorReporter
     lateinit var FileStorage: FileStorage
 
     init {
@@ -32,6 +36,7 @@ object Application {
         name = config("application.name")
 
         TraceLogger = config("application.traceLogger", ConsoleLogger)
+        ErrorReporter = config("application.errorReporter", ConsoleErrorReporter)
 
         val fileStorage: FileStorage? = configOrNull("application.fileStorage")
         if (fileStorage != null) FileStorage = fileStorage
