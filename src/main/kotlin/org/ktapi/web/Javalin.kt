@@ -21,7 +21,7 @@ import java.io.File
  * class like this:
  *
  * ```
- * object WebServer : Javalin({
+ * object WebServer : Javalin(setup = {
  *     routes {
  *        get("/myPath", myHandler)
  *     }
@@ -31,9 +31,9 @@ import java.io.File
  * ```
  * Or you can have it auto find classes that implement the Router interface and call the route function like this:
  * ```
- * object WebServer : Javalin({
+ * object WebServer : Javalin(setup = {
  *     routes {
- *        autoRoute()
+ *        WebServer.autoRoute()
  *     }
  * })
  * ```
